@@ -106,6 +106,8 @@ resource "aws_wafregional_sql_injection_match_set" "owasp_01_sql_injection_set" 
 }
 
 resource "aws_wafregional_rule" "owasp_01_sql_injection_rule" {
+  depends_on = ["aws_wafregional_sql_injection_match_set.owasp_01_sql_injection_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-01-mitigate-sql-injection-${random_id.this.hex}"
@@ -150,6 +152,8 @@ resource "aws_wafregional_byte_match_set" "owasp_02_auth_token_string_set" {
 }
 
 resource "aws_wafregional_rule" "owasp_02_auth_token_rule" {
+  depends_on = ["aws_wafregional_byte_match_set.owasp_02_auth_token_string_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-02-detect-bad-auth-token-${random_id.this.hex}"
@@ -238,6 +242,8 @@ resource "aws_wafregional_xss_match_set" "owasp_03_xss_set" {
 }
 
 resource "aws_wafregional_rule" "owasp_03_xss_rule" {
+  depends_on = ["aws_wafregional_xss_match_set.owasp_03_xss_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-03-mitigate-xss-${random_id.this.hex}"
@@ -340,6 +346,8 @@ resource "aws_wafregional_byte_match_set" "owasp_04_paths_string_set" {
 }
 
 resource "aws_wafregional_rule" "owasp_04_paths_rule" {
+  depends_on = ["aws_wafregional_byte_match_set.owasp_04_paths_string_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-04-detect-rfi-lfi-traversal-${random_id.this.hex}"
@@ -474,6 +482,8 @@ resource "aws_wafregional_byte_match_set" "owasp_06_php_insecure_uri_string_set"
 }
 
 resource "aws_wafregional_rule" "owasp_06_php_insecure_rule" {
+  depends_on = ["aws_wafregional_byte_match_set.owasp_06_php_insecure_qs_string_set", "aws_wafregional_byte_match_set.owasp_06_php_insecure_uri_string_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-06-detect-php-insecure-${random_id.this.hex}"
@@ -543,6 +553,8 @@ resource "aws_wafregional_size_constraint_set" "owasp_07_size_restriction_set" {
 }
 
 resource "aws_wafregional_rule" "owasp_07_size_restriction_rule" {
+  depends_on = ["aws_wafregional_size_constraint_set.owasp_07_size_restriction_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-07-restrict-sizes-${random_id.this.hex}"
@@ -577,7 +589,7 @@ resource "aws_wafregional_byte_match_set" "owasp_08_csrf_method_string_set" {
 resource "aws_wafregional_size_constraint_set" "owasp_08_csrf_token_size_constrain_set" {
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
-  name = "${lower(var.service_name)}-owasp-07-size-restrictions-${random_id.this.hex}"
+  name = "${lower(var.service_name)}-owasp-08-csrf-token-size-${random_id.this.hex}"
 
   size_constraints {
     text_transformation = "NONE"
@@ -592,6 +604,8 @@ resource "aws_wafregional_size_constraint_set" "owasp_08_csrf_token_size_constra
 }
 
 resource "aws_wafregional_rule" "owasp_08_csrf_rule" {
+  depends_on = ["aws_wafregional_byte_match_set.owasp_08_csrf_method_string_set", "aws_wafregional_size_constraint_set.owasp_08_csrf_token_size_constrain_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-08-enforce-csrf-${random_id.this.hex}"
@@ -690,6 +704,8 @@ resource "aws_wafregional_byte_match_set" "owasp_09_server_side_include_string_s
 }
 
 resource "aws_wafregional_rule" "owasp_09_server_side_include_rule" {
+  depends_on = ["aws_wafregional_byte_match_set.owasp_09_server_side_include_string_set"]
+
   count = "${lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-09-detect-ssi-${random_id.this.hex}"
@@ -710,6 +726,17 @@ resource "aws_wafregional_rule" "owasp_09_server_side_include_rule" {
 ## RuleGroup
 
 resource "aws_wafregional_rule_group" "owasp_top_10" {
+  depends_on = [
+    "aws_wafregional_rule.owasp_01_sql_injection_rule",
+    "aws_wafregional_rule.owasp_02_auth_token_rule",
+    "aws_wafregional_rule.owasp_03_xss_rule",
+    "aws_wafregional_rule.owasp_04_paths_rule",
+    "aws_wafregional_rule.owasp_06_php_insecure_rule",
+    "aws_wafregional_rule.owasp_07_size_restriction_rule",
+    "aws_wafregional_rule.owasp_08_csrf_rule",
+    "aws_wafregional_rule.owasp_09_server_side_include_rule",
+  ]
+
   count = "${lower(var.create_rule_group) && lower(var.target_scope) == "regional" ? "1" : "0"}"
 
   name        = "${format("%s-owasp-top-10-%s", lower(var.service_name), random_id.this.hex)}"
@@ -892,6 +919,8 @@ resource "aws_waf_sql_injection_match_set" "owasp_01_sql_injection_set" {
 }
 
 resource "aws_waf_rule" "owasp_01_sql_injection_rule" {
+  depends_on = ["aws_waf_sql_injection_match_set.owasp_01_sql_injection_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-01-mitigate-sql-injection-${random_id.this.hex}"
@@ -936,6 +965,8 @@ resource "aws_waf_byte_match_set" "owasp_02_auth_token_string_set" {
 }
 
 resource "aws_waf_rule" "owasp_02_auth_token_rule" {
+  depends_on = ["aws_waf_byte_match_set.owasp_02_auth_token_string_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-02-detect-bad-auth-token-${random_id.this.hex}"
@@ -1024,6 +1055,8 @@ resource "aws_waf_xss_match_set" "owasp_03_xss_set" {
 }
 
 resource "aws_waf_rule" "owasp_03_xss_rule" {
+  depends_on = ["aws_waf_xss_match_set.owasp_03_xss_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-03-mitigate-xss-${random_id.this.hex}"
@@ -1126,6 +1159,8 @@ resource "aws_waf_byte_match_set" "owasp_04_paths_string_set" {
 }
 
 resource "aws_waf_rule" "owasp_04_paths_rule" {
+  depends_on = ["aws_waf_byte_match_set.owasp_04_paths_string_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-04-detect-rfi-lfi-traversal-${random_id.this.hex}"
@@ -1260,6 +1295,8 @@ resource "aws_waf_byte_match_set" "owasp_06_php_insecure_uri_string_set" {
 }
 
 resource "aws_waf_rule" "owasp_06_php_insecure_rule" {
+  depends_on = ["aws_waf_byte_match_set.owasp_06_php_insecure_qs_string_set", "aws_waf_byte_match_set.owasp_06_php_insecure_uri_string_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-06-detect-php-insecure-${random_id.this.hex}"
@@ -1329,6 +1366,8 @@ resource "aws_waf_size_constraint_set" "owasp_07_size_restriction_set" {
 }
 
 resource "aws_waf_rule" "owasp_07_size_restriction_rule" {
+  depends_on = ["aws_waf_size_constraint_set.owasp_07_size_restriction_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-07-restrict-sizes-${random_id.this.hex}"
@@ -1363,7 +1402,7 @@ resource "aws_waf_byte_match_set" "owasp_08_csrf_method_string_set" {
 resource "aws_waf_size_constraint_set" "owasp_08_csrf_token_size_constrain_set" {
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
-  name = "${lower(var.service_name)}-owasp-07-size-restrictions-${random_id.this.hex}"
+  name = "${lower(var.service_name)}-owasp-08-csrf-token-size-${random_id.this.hex}"
 
   size_constraints {
     text_transformation = "NONE"
@@ -1378,6 +1417,8 @@ resource "aws_waf_size_constraint_set" "owasp_08_csrf_token_size_constrain_set" 
 }
 
 resource "aws_waf_rule" "owasp_08_csrf_rule" {
+  depends_on = ["aws_waf_byte_match_set.owasp_08_csrf_method_string_set", "aws_waf_size_constraint_set.owasp_08_csrf_token_size_constrain_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-08-enforce-csrf-${random_id.this.hex}"
@@ -1476,6 +1517,8 @@ resource "aws_waf_byte_match_set" "owasp_09_server_side_include_string_set" {
 }
 
 resource "aws_waf_rule" "owasp_09_server_side_include_rule" {
+  depends_on = ["aws_waf_byte_match_set.owasp_09_server_side_include_string_set"]
+
   count = "${lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${lower(var.service_name)}-owasp-09-detect-ssi-${random_id.this.hex}"
@@ -1496,6 +1539,17 @@ resource "aws_waf_rule" "owasp_09_server_side_include_rule" {
 ## RuleGroup
 
 resource "aws_waf_rule_group" "owasp_top_10" {
+  depends_on = [
+    "aws_waf_rule.owasp_01_sql_injection_rule",
+    "aws_waf_rule.owasp_02_auth_token_rule",
+    "aws_waf_rule.owasp_03_xss_rule",
+    "aws_waf_rule.owasp_04_paths_rule",
+    "aws_waf_rule.owasp_06_php_insecure_rule",
+    "aws_waf_rule.owasp_07_size_restriction_rule",
+    "aws_waf_rule.owasp_08_csrf_rule",
+    "aws_waf_rule.owasp_09_server_side_include_rule",
+  ]
+
   count = "${lower(var.create_rule_group) && lower(var.target_scope) == "global" ? "1" : "0"}"
 
   name        = "${format("%s-owasp-top-10-%s", lower(var.service_name), random_id.this.hex)}"

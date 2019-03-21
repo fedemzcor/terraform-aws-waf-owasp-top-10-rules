@@ -7,8 +7,11 @@ The resources cannot be used without WebACL, which is not covered by this module
 ## Examples
 * [owasp-top-10](examples/owasp-top-10)
 
-## Authors
-* [Rafi Kurnia Putra](https://github.com/rafikurnia)
+## Related Modules
+* [terraform-aws-waf-webacl-supporting-resources](https://github.com/traveloka/terraform-aws-waf-webacl-supporting-resources)
+
+## Author
+[Rafi Kurnia Putra](https://github.com/rafikurnia)
 
 ## License
 Apache 2 Licensed. See LICENSE for full details.
