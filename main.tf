@@ -73,24 +73,6 @@ resource "aws_wafregional_sql_injection_match_set" "owasp_01_sql_injection_set" 
 
     field_to_match {
       type = "HEADER"
-      data = "cookie"
-    }
-  }
-
-  sql_injection_match_tuple {
-    text_transformation = "HTML_ENTITY_DECODE"
-
-    field_to_match {
-      type = "HEADER"
-      data = "cookie"
-    }
-  }
-
-  sql_injection_match_tuple {
-    text_transformation = "URL_DECODE"
-
-    field_to_match {
-      type = "HEADER"
       data = "Authorization"
     }
   }
@@ -878,24 +860,6 @@ resource "aws_waf_sql_injection_match_set" "owasp_01_sql_injection_set" {
 
     field_to_match {
       type = "BODY"
-    }
-  }
-
-  sql_injection_match_tuples {
-    text_transformation = "URL_DECODE"
-
-    field_to_match {
-      type = "HEADER"
-      data = "cookie"
-    }
-  }
-
-  sql_injection_match_tuples {
-    text_transformation = "HTML_ENTITY_DECODE"
-
-    field_to_match {
-      type = "HEADER"
-      data = "cookie"
     }
   }
 
