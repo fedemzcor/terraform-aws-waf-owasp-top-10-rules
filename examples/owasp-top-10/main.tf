@@ -1,7 +1,10 @@
 module "owasp_top_10" {
-  # This module is published on the registry: https://registry.terraform.io/modules/traveloka/waf-owasp-top-10-rules
+  # This module is published on the registry: https://registry.terraform.io/modules/traveloka/waf-owasp-top-10-rules    
+
+  # Open the link above to see what the latest version is. Highly encouraged to use the latest version if possible.
+
   source  = "traveloka/waf-owasp-top-10-rules/aws"
-  version = "0.1.0"
+  version = "0.1.1"
 
   # For a better understanding of what are those parameters mean,
   # please read the description of each variable in the variables.tf file:
